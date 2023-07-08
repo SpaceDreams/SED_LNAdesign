@@ -91,7 +91,7 @@ eqn2html(gmfT, gmfTopt, units='1/Omega')
 eqn2html(gmfT, fullSubs(gmfTopt,i1.parDefs), units='1/Omega')
 
 head2html('Minimum Total Input Referred Spectral Noise Density')
-SNoiseMos.sub(gm,gmfTopt*fT)
+eqn2html("NF_min",sp.simplify(NoiseMos.sub(gm,gmfTopt*fT)))
 
 """
 specs.append(specItem("NF_Nul_eq",  description="The Noise Figure for a Noisy Nullor Balanced Cross Coupled Feedback Circuit ",             typValue=,  units="1", specType="optimization"))
