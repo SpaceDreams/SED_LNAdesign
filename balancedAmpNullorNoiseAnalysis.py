@@ -16,7 +16,6 @@ i1.setCircuit(fileName + ".cir")
 # import the specifications and define the parameters
 specs = csv2specs(specFileName)
 specs2circuit(specs, i1)
-specs2circuit(specs, i1)
 
 # Circuit Page
 htmlPage("Circuit Data")
@@ -58,7 +57,7 @@ i1.setDetector('I_Rl_D')
 # Define the frequency range
 f_min = sp.Symbol('f_min')
 f_max = sp.Symbol('f_max')
-gm,k,T,n,Gamma,fl,f,fT = sp.symbols("g_m,k,T,n,Gamma,f_l,f,f_T",real=True, positive=True)
+gm,k,T,n,Gamma,fl,f,fT,alpha = sp.symbols("g_m,k,T,n,Gamma,f_l,f,f_T,alpha",real=True, positive=True)
 noiseResult = i1.execute()
 # Create an HTML page with the results of the noise analysis
 htmlPage('Symbolic noise analysis')
@@ -79,20 +78,21 @@ Svmos=Sidmos*(Bmos)**2
 Simos=sp.expand(Sidmos*(Dmos.subs(sp.Symbol("s"),2*sp.pi*f))**2)
 eqn2html("S_i",Simos)
 eqn2html("S_v",Svmos)
-NoiseMos=noiseResult.inoise.subs([(sp.Symbol('S_i'),Simos),(sp.Symbol('S_v'),Svmos),(sp.symbols("R_s,Z_i"))])
-dSdgm=sp.diff(NoiseMos,gm)
-gmfTopt = (sp.solve(dSdgm,gm)[1]/fT)
-
-head2html('Optimum $\\frac{g_m}{f_T}$:')
-#text2html('The noise figure is obtained as:')
-gmfT=gm/fT
-
-eqn2html(gmfT, gmfTopt, units='1/Omega')
-eqn2html(gmfT, fullSubs(gmfTopt,i1.parDefs), units='1/Omega')
-
-head2html('Minimum Total Input Referred Spectral Noise Density')
-eqn2html("NF_min",sp.simplify(NoiseMos.subs(gm,gmfTopt*fT)))
-
+text2html("Here I will substitute $f_l=\\alpha f_T$:")
+Svmos=Svmos.subs(fl,alpha*fT)
+Simos=Simos.subs(fl,alpha*fT)
+eqn2html("S_i",Simos)
+eqn2html("S_v",Svmos)
+# Calculate the contribution of the source to the squared RMS detector noise
+var_inoise_src = 2*rmsNoise(noiseResult, 'inoise', f_min, f_max, noiseResult.source)**2#<---- This is bad, right? How does this work with differential mode, do I multiply by 2?
+noiseMos=noiseResult.inoise.subs([(sp.Symbol('S_i'),Simos),(sp.Symbol('S_v'),Svmos),(sp.symbols("R_s,Z_i"))])
+# Calculate the squared RMS noise at the detector
+dndgm     = sp.integrate(sp.diff(noiseMos,gm), (f,f_min, f_max))
+gmopt = sp.solve(dndgm,gm)[1]
+dndfT     = sp.simplify( sp.integrate(sp.diff(noiseMos,fT), (f,f_min, f_max))).subs(gm,gmopt)
+eqn2html("g_mopt",gmopt)
+fTopt = sp.solve(dndfT,fT)[0]
+eqn2html("f_Topt",fullSubs(fTopt,i1.parDefs))
 """
 specs.append(specItem("NF_Nul_eq",  description="The Noise Figure for a Noisy Nullor Balanced Cross Coupled Feedback Circuit ",             typValue=,  units="1", specType="optimization"))
 head2html("Updated specifications")
