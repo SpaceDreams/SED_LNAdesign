@@ -13,7 +13,7 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Test
+      - name: Trigger SLiCAP Build
         run: |
           curl -X POST https://api.github.com/repos/SpaceDreams/spacedreams.github.io/dispatches \
           -H 'Accept: application/vnd.github.everest-preview+json' \
