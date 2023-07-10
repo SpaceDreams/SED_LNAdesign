@@ -90,8 +90,22 @@ noiseMos=noiseResult.inoise.subs([(sp.Symbol('S_i'),Simos),(sp.Symbol('S_v'),Svm
 dndgm     = sp.integrate(sp.diff(noiseMos,gm), (f,f_min, f_max))
 gmopt = sp.solve(dndgm,gm)[1]
 dndfT     = sp.simplify( sp.integrate(sp.diff(noiseMos,fT), (f,f_min, f_max))).subs(gm,gmopt)
-eqn2html("g_mopt",gmopt)
+eqn2html("g_mopt",fullSubs(gmopt,i1.parDefs))
 fTopt = sp.solve(dndfT,fT)[0]
+eqn2html("f_Topt",fullSubs(fTopt,i1.parDefs))
+
+head2html("Troubleshooting:")
+text2html("Here I would like to instead analyze a simpler circuit; I want the minimum RMS for a resistive voltage source; the text covers minimizing the noise but doesn't include a changing transit frequency. .... Question: What condition makes the transit frequency constant as gm changes?")
+Rs = sp.Symbol("R_s",real=True, positive=True)
+SvnRs = 4*k*T*Rs
+Svin = SvnRs+Svmos+Rs**2*Simos
+eqn2html("S_vin",Svin)
+dndgm     = sp.integrate(sp.diff(Svin,gm), (f,f_min, f_max))
+gmopt = sp.solve(dndgm,gm)[1]
+dndfT     = sp.simplify( sp.integrate(sp.diff(Svin,fT), (f,f_min, f_max))).subs(gm,gmopt)
+eqn2html("g_mopt",gmopt)
+fTopt = sp.simplify(sp.solve(dndfT,fT)[0])
+eqn2html("f_Topt",fTopt)
 eqn2html("f_Topt",fullSubs(fTopt,i1.parDefs))
 """
 specs.append(specItem("NF_Nul_eq",  description="The Noise Figure for a Noisy Nullor Balanced Cross Coupled Feedback Circuit ",             typValue=,  units="1", specType="optimization"))
